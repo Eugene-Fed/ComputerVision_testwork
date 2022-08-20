@@ -5,34 +5,9 @@ import numpy as np
 import os
 import json
 
-SAVING_FRAMES = 60                                  # сохраняем каждый 15-й кадр
+SAVING_FRAMES = 60                                      # сохраняем каждый 15-й кадр
 WORK_DIRECTORY = "D:\Downloads\ComputerVision_test"
 VIDEO_FILE_NAME = "7.mp4"
-
-
-def format_timedelta(td):
-    """Служебная функция для форматирования объектов timedelta (например, 00:00:20.05)
-    исключая микросекунды и сохраняя миллисекунды"""
-    result = str(td)
-    try:
-        result, ms = result.split(".")
-    except ValueError:
-        return result + ".00".replace(":", "-")
-    ms = int(ms)
-    ms = round(ms / 1e4)
-    return f"{result}.{ms:02}".replace(":", "-")
-
-
-def get_saving_frames_durations(cap, saving_fps):
-    """Функция, которая возвращает список таймкодов, по которым нужно извлекать кадры."""
-    s = []
-    # в OpenCV нельзя получить длительность видео,
-    # поэтому получаем продолжительность клипа, разделив общее количество кадров на количество кадров в секунду
-    clip_duration = cap.get(cv2.CAP_PROP_FRAME_COUNT) / cap.get(cv2.CAP_PROP_FPS)
-    # используем np.arange для выполнения шагов с плавающей запятой с большей точностью
-    for i in np.arange(0, clip_duration, 1 / saving_fps):
-        s.append(i)
-    return s
 
 
 def main(video_file):
@@ -40,38 +15,14 @@ def main(video_file):
     if not os.path.isdir(filename):                     # создаем папку по названию видео файла
         os.mkdir(filename)
     cap = cv2.VideoCapture(video_file)                  # читаем видео файл
-    fps = cap.get(cv2.CAP_PROP_FPS)                     # получаем FPS видео
-    print('Частота кадров: {}'.format(fps))
-    saving_frames_per_second = fps / SAVING_FRAMES     # вычисляем количество сохраняемых кадров в секунду
-    print('Сохраняем кадр каждые {} секунд'.format(1/saving_frames_per_second))
-    # получаем таймкоды для сохранения скриншотов
-    saving_frames_durations = get_saving_frames_durations(cap, saving_frames_per_second)
-    # запускаем цикл
-    count = 0
-    while True:
-        is_read, frame = cap.read()
-        if not is_read:
-            # выйти из цикла, если нет фреймов для чтения
-            break
-        # получаем продолжительность, разделив количество кадров на FPS
-        frame_duration = count / fps
-        try:
-            # получаем самый ранний таймкод для сохранения
-            closest_duration = saving_frames_durations[0]
-        except IndexError:
-            # список пуст, все кадры длительности сохранены
-            break
-        if frame_duration >= closest_duration:
-            # если таймкод больше или равен ближайшему кадру, то сохраняем файл
-            frame_duration_formatted = format_timedelta(timedelta(seconds=frame_duration))
-            cv2.imwrite(os.path.join(filename, f"frame{frame_duration_formatted}.jpg"), frame)
-            # удалить точку продолжительности из списка, так как эта точка длительности уже сохранена
-            try:
-                saving_frames_durations.pop(0)
-            except IndexError:
-                pass
-        # увеличить метку проверяемого кадра
-        count += 1
+
+    # цикл по всем кадрам, начиная с 15 (нужно начинать с 14 т.к. индекс 0-based) до конца файла, через каждые 15 кадров
+    for frame_no in range(SAVING_FRAMES, int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), SAVING_FRAMES):
+        # единица в качестве первого параметра - это CV_CAP_PROP_POS_FRAMES
+        # или '0-based index of the frame to be decoded/captured next', т.е. метод set(1, int) задает кадр для чтения
+        cap.set(1, frame_no);
+        is_read, frame = cap.read()     # is_read = True если такой кадр существует, frame - это объект кадра
+        cv2.imwrite(os.path.join(filename, "frame{}.jpg".format(frame_no)), frame)  # сохраняем кадр в файл
 
 
 if __name__ == '__main__':
