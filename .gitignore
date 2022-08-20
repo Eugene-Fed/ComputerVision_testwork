@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Settings file with work paths
+settings.json
+
+# Input and output media files
+screenshots/
+hard workers/
+lazybones/
+
 # C extensions
 *.so
 
