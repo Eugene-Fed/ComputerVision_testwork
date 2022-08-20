@@ -1,2 +1,5 @@
-# ComputerVision_testwork
-Test task on Computer Vision
+## ComputerVision_testwork
+# Test task on Computer Vision
+
+Файл settings.json добавлен в .gitignore для того, чтобы посторонние не могли увидеть файловую структуру разработчика.
+Файл будет создан с параметрами по-умолчанию при первом запуске кода, и после этого отредактировать
