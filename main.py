@@ -5,7 +5,7 @@ import numpy as np
 import os
 import json
 
-SAVING_FRAMES_PER_SECOND = 0.5  # сохраняем 1 кадр в 2 секунды, т.к. у файла 15 FPS
+SAVING_FRAMES = 15                                  # сохраняем каждый 15-й кадр
 WORK_DIRECTORY = "D:\Downloads\ComputerVision_test"
 VIDEO_FILE_NAME = "7.mp4"
 
@@ -35,15 +35,14 @@ def get_saving_frames_durations(cap, saving_fps):
 
 
 def main(video_file):
-    filename, _ = os.path.splitext(video_file)      # создаем папку по названию видео файла
-    if not os.path.isdir(filename):
+    filename, _ = os.path.splitext(video_file)          # разделяем имя файла на название и расширение
+    if not os.path.isdir(filename):                     # создаем папку по названию видео файла
         os.mkdir(filename)
-    # читать видео файл
-    cap = cv2.VideoCapture(video_file)
-    # получить FPS видео
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    # если SAVING_FRAMES_PER_SECOND выше видео FPS, то установите его на FPS (как максимум)
-    saving_frames_per_second = min(fps, SAVING_FRAMES_PER_SECOND)
+    cap = cv2.VideoCapture(video_file)                  # читаем видео файл
+    fps = cap.get(cv2.CAP_PROP_FPS)                     # получаем FPS видео
+    # если SAVING_FRAMES_PER_SECOND выше видео FPS, то установить его равным FPS (тогда сохранится каждый кадр)
+    # saving_frames_per_second = min(fps, SAVING_FRAMES_PER_SECOND)
+    saving_frames_per_second = fps // SAVING_FRAMES     # вычисляем количество сохраняемых кадров в секунду
     # получить список длительностей для сохранения
     saving_frames_durations = get_saving_frames_durations(cap, saving_frames_per_second)
     # запускаем цикл
