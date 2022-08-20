@@ -5,13 +5,14 @@ import numpy as np
 import os
 import json
 
-SAVING_FRAMES = 1000                                      # сохраняем каждый 15-й кадр
+SAVING_FRAMES = 10000                                      # сохраняем каждый 15-й кадр
 WORK_DIRECTORY = "D:\Downloads\ComputerVision_test"
 VIDEO_FILE_NAME = "Camera 3_20220526_003249.mp4"
 
 
-def get_frame():
-    pass
+def get_small_frame(frame):
+    cropped_frame = frame
+    return cropped_frame
 
 
 def main(video_file):
@@ -27,7 +28,8 @@ def main(video_file):
         # или '0-based index of the frame to be decoded/captured next', т.е. метод set(1, int) задает кадр для чтения
         cap.set(1, frame_no);
         is_read, frame = cap.read()     # is_read = True если такой кадр существует, frame - это объект кадра
-        cv2.imwrite(os.path.join(filename, "frame{}.jpg".format(frame_no)), frame)  # сохраняем кадр в файл
+
+        cv2.imwrite(os.path.join(filename, "frame{}.jpg".format(frame_no)), get_small_frame(frame))  # сохраняем кадр
 
 
 if __name__ == '__main__':
