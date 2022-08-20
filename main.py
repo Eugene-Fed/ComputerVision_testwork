@@ -5,9 +5,13 @@ import numpy as np
 import os
 import json
 
-SAVING_FRAMES = 60                                      # сохраняем каждый 15-й кадр
+SAVING_FRAMES = 1000                                      # сохраняем каждый 15-й кадр
 WORK_DIRECTORY = "D:\Downloads\ComputerVision_test"
-VIDEO_FILE_NAME = "7.mp4"
+VIDEO_FILE_NAME = "Camera 3_20220526_003249.mp4"
+
+
+def get_frame():
+    pass
 
 
 def main(video_file):
@@ -15,6 +19,7 @@ def main(video_file):
     if not os.path.isdir(filename):                     # создаем папку по названию видео файла
         os.mkdir(filename)
     cap = cv2.VideoCapture(video_file)                  # читаем видео файл
+    print("Общее количество кадров в видео: {}".format(cap.get(cv2.CAP_PROP_FRAME_COUNT)))
 
     # цикл по всем кадрам, начиная с 15 (нужно начинать с 14 т.к. индекс 0-based) до конца файла, через каждые 15 кадров
     for frame_no in range(SAVING_FRAMES, int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), SAVING_FRAMES):
