@@ -33,7 +33,7 @@ TRAIN_SET = "train_set"
 TEST_SET = "test_set"
 FRAME_WIDTH = 116
 FRAME_HEIGHT = 116
-BATCH_SIZE = 1000
+BATCH_SIZE = 10
 LEARNING_RATE = 0.01                            # Скорость обучения
 EPOCHS = 10                                     # Кол-во эпох обучения
 LOG_INTERVAL = 10
@@ -76,22 +76,21 @@ def forward(self, x):
 #                            100. * batch_idx / len(train_loader), loss.data[0]))
 
 
-def train_test_loader():
-    train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('../data', train=True, download=True,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ])),
-        batch_size=BATCH_SIZE, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('../data', train=False, transform=transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])),
-        batch_size=BATCH_SIZE, shuffle=True)
-    return train_loader, test_loader
-
+# def train_test_loader(data_set):
+#     train_loader = torch.utils.data.DataLoader(
+#         datasets.MNIST(data_set, train=True, download=True,
+#                        transform=transforms.Compose([
+#                            transforms.ToTensor(),
+#                            transforms.Normalize((0.1307,), (0.3081,))
+#                        ])),
+#         batch_size=BATCH_SIZE, shuffle=True)
+#     test_loader = torch.utils.data.DataLoader(
+#         datasets.MNIST(data_set, train=False, transform=transforms.Compose([
+#             transforms.ToTensor(),
+#             transforms.Normalize((0.1307,), (0.3081,))
+#         ])),
+#         batch_size=BATCH_SIZE, shuffle=True)
+#     return train_loader, test_loader
 
 
 def main():
@@ -101,11 +100,31 @@ def main():
     #       'Negative Set: {}'.format(WORK_DIRECTORY, POSITIVE_SET, NEGATIVE_SET))
     net = Net()
     print("{}\n".format(net))
+
+    train_loader = torch.utils.data.DataLoader(
+        datasets.MNIST('{}\{}}'.format(WORK_DIRECTORY, TRAIN_SET),
+                       train=True, download=True,
+                       transform=transforms.Compose([
+                           transforms.ToTensor(),
+                           transforms.Normalize((0.1307,), (0.3081,))
+                       ])),
+        batch_size=BATCH_SIZE, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(
+        datasets.MNIST('{}\{}}'.format(WORK_DIRECTORY, TEST_SET),
+                       train=False,
+                       transform=transforms.Compose([
+                            transforms.ToTensor(),
+                            transforms.Normalize((0.1307,), (0.3081,))
+                        ])),
+        batch_size=BATCH_SIZE, shuffle=True)
+
     # Осуществляем оптимизацию путем стохастического градиентного спуска
     optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.9)
     # Создаем функцию потерь
     criterion = nn.NLLLoss()
+    # data_path = '{}\{}'.format(WORK_DIRECTORY, TRAIN_SET)
     # запускаем главный тренировочный цикл
+    print('Запускаем тренировочный цикл')
     for epoch in tqdm(range(EPOCHS)):
         for batch_idx, (data, target) in enumerate(train_loader):
             data, target = Variable(data), Variable(target)
@@ -120,6 +139,24 @@ def main():
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]tLoss: {:.6f}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
                            100. * batch_idx / len(train_loader), loss.data[0]))
+
+    # запускаем тестовый цикл
+    print('Запускаем цикл тестирования')
+    test_loss = 0
+    correct = 0
+    for data, target in tqdm(test_loader):
+        data, target = Variable(data, volatile=True), Variable(target)
+        data = data.view(-1, FRAME_WIDTH * FRAME_HEIGHT)
+        net_out = net(data)
+        # sum up batch loss
+        test_loss += criterion(net_out, target).data[0]
+        pred = net_out.data.max(1)[1]  # get the index of the max log-probability
+        correct += pred.eq(target.data).sum()
+
+    test_loss /= len(test_loader.dataset)
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
 
 
 if __name__ == '__main__':
